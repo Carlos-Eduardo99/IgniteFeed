@@ -1,46 +1,108 @@
+import { format, formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale/pt-BR'
 import { Comment } from './Comment'
 import { Avatar } from './Avatar'
+import { useState } from 'react'
+
 import styles from './Post.module.css'
 
-import photoProfile from '../assets/Rectangle 4234.svg'
+    
+export function Post({ author, publishedAt, content }){
 
-export function Post(){
+    const [comments, setComments] = useState([
+        'Que legal! Parabéns!!'
+    ])
+
+    const [newCommentText, setNewCommentText] = useState('')
+
+    const publishedDateFormatted = format(publishedAt, "d 'de' LLLL 'às' HH:mm'h'", {
+        locale: ptBR,
+    })
+
+    const publishedDateRelativeToNow = formatDistanceToNow(publishedAt,{
+        locale: ptBR,
+        addSuffix: true,
+    })
+
+    function handleCreateNewComment() {
+        event.preventDefault()
+
+        //imutabilidade
+
+        setComments([...comments, newCommentText]);
+        setNewCommentText('');
+    }
+
+    function handleNewCommentChange(){
+        event.target.setCustomValidity('');
+        setNewCommentText(event.target.value);    
+    }
+
+    function handleNewCommentInvalid(){
+        event.target.setCustomValidity('Este campo é obrigatório!') //modifica a mensagem de required
+    }
+
+    function deleteComment(commentToDelet){
+        //imutabilidade = as variaveis não sofrem mutação (nao alteramos o valor da variavel na memoria, criamos um novo espaço na memoria)
+        const commentsWithoutDeletedOne = comments.filter(comment =>{
+            return comment != commentToDelet;
+        })
+        setComments(commentsWithoutDeletedOne)
+    }
+
+    const isNewCommentEmpty = newCommentText.length == 0;
 
     return (
         <article className= {styles.post}>
             <header>
                 <div className={styles.author}>
-                    <Avatar src={photoProfile}/>
+                    <Avatar src={author.avatarUrl}/>
                     <div className={styles.authorInfo}>
-                        <strong>Jane Cooper</strong>
-                        <span>Dev Front-End</span>  
+                        <strong>{author.name}</strong>
+                        <span>{author.role}</span>  
                     </div>
                 </div>
-                <time title="08 de fevereiro às 15:00" dateTime="2024-02-08 14:58:00"> Públicado há 1h</time>
+                <time title={publishedDateFormatted} dateTime={publishedAt.toISOString()}>{publishedDateRelativeToNow}</time>
+
             </header>
 
             <div className={styles.content}>
-                <p>Fala galeraa 👋</p>
-                <p>Acabei de subir mais um projeto no meu portifa. É um projeto que fiz no NLW Return, evento da Rocketseat. O nome do projeto é DoctorCare 🚀</p>
-                <p> 👉{' '} <a href="#">jane.design/doctorcare</a></p>
-                <p><a href="#">#novoprojeto</a> <a href="#">#nlw</a> <a href="#">#rocketseat</a></p>
+                {
+                    content.map(line => {
+                        if (line.type == 'paragraph'){
+                            return <p key={line.content}>{line.content}</p>
+                        }else if (line.type == 'link'){
+                            return <p key={line.content}><a href="#">{line.content}</a></p> 
+                        }
+                    })
+                }
             </div>
 
-            <form className={styles.commentForm}>
+            <form onSubmit={handleCreateNewComment} className={styles.commentForm}>
                 <strong>Deixe seu feedback</strong>
 
-                <textarea 
+                <textarea name="comment"
                     placeholder='Deixe um comentário'
+                    onChange={handleNewCommentChange}
+                    value={newCommentText}
+                    required
+                    onInvalid={handleNewCommentInvalid} //verifica se o texto no campo é inválido
                 />
                 <footer>
-                    <button type='submit'>Publicar</button>
+                    <button type='submit' disabled={isNewCommentEmpty}>Publicar</button>
                 </footer>
             </form>
 
             <div className={styles.commentList}>
-                <Comment />
-                <Comment />
-                <Comment />
+                {comments.map(comment => {
+                    return (
+                        <Comment 
+                            key={comment} 
+                            content={comment} 
+                            onDeleteComment={deleteComment} //quando passar funções por propriedade utilizar o prefixo on
+                        />
+                    )
+                })}
             </div>
         </article>    
     )

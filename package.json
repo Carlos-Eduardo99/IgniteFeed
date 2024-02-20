@@ -1,5 +1,5 @@
 {
-  "homepage":"https://carlos-eduardo99.github.io/IgniteFeed/",
+  "homepage": "https://carlos-eduardo99.github.io/IgniteFeed/",
   "name": "01-fundamentos-reactjs",
   "private": true,
   "version": "0.0.0",
@@ -13,6 +13,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "date-fns": "^3.3.1",
     "phosphor-react": "^1.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
